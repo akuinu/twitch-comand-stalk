@@ -153,7 +153,7 @@ var app = new Vue({
         item.sub = true;
       }
       if (!this.settings.subOnly || (this.settings.subOnly && item.sub)){
-				user.msg = userData.message;
+				item.msg = userData.message;
         this.usersQueued.push(item);
       }
     },
