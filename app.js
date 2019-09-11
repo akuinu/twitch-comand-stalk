@@ -266,7 +266,7 @@ function connectChat(settings){
 					var  r = /!join/;
 					var  m = parsed.message.match(r);
 				*/
-				if (app.settings.keyword.trim() ===  parsed.message.trim()) {
+				if (parsed.message.trim.startsWith(app.settings.keyword.trim())) {
 					app.addUser(parsed);
 				}
 			} else if (parsed.command === "PING") {
