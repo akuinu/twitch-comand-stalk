@@ -1,0 +1,161 @@
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css" integrity="sha256-zKA1Bf41O96+gJSlkn/Bh2HATW/OhwkApPlYTp3B5O8=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+  </head>
+<body>
+<div id="app">
+  <div class="has-background-grey-dark">
+	<button class="button is-black" title="Setings" @click="settings.disply = !settings.disply"><span class="icon"><i class="fa fa-cog"></i></span></button>
+	<span id="status" class="tag is-warning">Not connected</span>
+	<div class="container" v-if="settings.disply">
+		<div class="field is-horizontal">
+			<div class="field-label is-normal">
+				<label class="label has-text-grey-light">Channel:</label>
+			</div>
+			<div class="field-body">
+				<div class="field">
+					<p class="control">
+					<input class="input has-text-gray" type="text" tabindex="1" placeholder="Your channel name" v-model="settings.channel">
+					</p>
+				</div>
+				<button class="button is-info" title="Info" @click="settings.channelInfoShow = !settings.channelInfoShow"><span class="icon"><i class="fas fa-info-circle"></i></span></button>
+			</div>
+		</div>
+		<div class="notification" v-if="settings.channelInfoShow">This is for your Twitch channel name.</div>
+
+		<div class="field is-horizontal">
+		  <div class="field-label is-normal">
+			<label class="label has-text-grey-light">Keyword:</label>
+		  </div>
+		  <div class="field-body">
+			<div class="field">
+			  <p class="control">
+				<input class="input is-primary" type="text" tabindex="4" placeholder="Keyword" v-model="settings.keyword">
+			  </p>
+			</div>
+		  <button class="button is-info" title="Info" @click="settings.keywordInfoShow = !settings.keywordInfoShow"><span class="icon"><i class="fas fa-info-circle"></i></span></button>
+		  </div>
+		</div>
+		<div class="notification" v-if="settings.keywordInfoShow">
+			Keyword that is viewers can use to join the queue. <br>
+			For example: "!join" "play"
+		</div>
+
+    <div class="field is-horizontal">
+      <div class="field-label is-normal">
+      <label class="label has-text-grey-light">Subscriber marker:</label>
+      </div>
+      <div class="field-body">
+      <div class="field">
+        <p class="control">
+        <button :class="(settings.subMarkers) ? ('fas fa-toggle-on button is-success') : ('fas fa-toggle-off button is-gray')" title="Toggle on/off" @click="settings.subMarkers = !settings.subMarkers"></button>
+        </p>
+      </div>
+      <div class="field-label is-normal">
+      <label class="label has-text-grey-light">Subscriber only:</label>
+      </div>
+      <div class="field">
+        <p class="control">
+        <button :class="(settings.subOnly) ? ('fas fa-toggle-on button is-success') : ('fas fa-toggle-off button is-gray')" title="Toggle on/off" @click="settings.subOnly = !settings.subOnly"></button>
+        </p>
+      </div>
+      <button class="button is-info" title="Info" @click="settings.subInfoShow = !settings.subInfoShow"><span class="icon"><i class="fas fa-info-circle"></i></span></button>
+      </div>
+    </div>
+    <div class="notification" v-if="settings.subInfoShow">
+      Subscriber marker will show or hide the Subscriber collumn in the queue. <br>
+      Subscriber only disables or enables non Subscribers enter the queue.
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label is-normal">
+      <label class="label has-text-grey-light">Colour:</label>
+      </div>
+      <div class="field-body">
+      <div class="field">
+        <p class="control">
+        <button :class="(settings.colours) ? ('fas fa-toggle-on button is-success') : ('fas fa-toggle-off button is-gray')" title="Toggle on/off" @click="settings.colours = !settings.colours"></button>
+        </p>
+      </div>
+      <button class="button is-info" title="Info" @click="settings.coloursInfoShow = !settings.coloursInfoShow"><span class="icon"><i class="fas fa-info-circle"></i></span></button>
+      </div>
+    </div>
+    <div class="notification" v-if="settings.coloursInfoShow">
+      Have usernames with colour.
+    </div>
+
+		<button class="button is-black" title="Connect" tabindex="5" @click="connect()">Connect</button>
+		<button class="button is-black" title="Clear the queue" @click="clear()">Clear</button>
+	</div>
+	<br>
+  </div>
+  <br>
+  <div class="columns">
+  	<div class="column is-two-thirds">
+  		<table class="table">
+  		  <thead>
+  			<tr>
+  			  <th><abbr title="Position">Pos</abbr></th>
+  			  <th><abbr title="Username">Username</abbr></th>
+  			  <th v-if="settings.subMarkers"><abbr title="Subscriber">Sub</abbr></th>
+  			  <th><abbr title="Songs played">Songs</abbr></th>
+  			  <th><abbr title="Msg sent">Msg</abbr></th>
+  			  <th><abbr title="Time since joing the queue">Time</abbr></th>
+  			  <th></th>
+  			</tr>
+  		  </thead>
+  		  <tbody>
+  			<tr v-for="(item, index) in usersQueued">
+  			  <th>{{index + 1}}</th>
+  			  <td :style="(settings.colours) ? ('color:' + item.color) : ('color:black')" >{{item.name}}</td>
+  			  <td v-if="settings.subMarkers"><span class="icon"><i :class="(item.sub) ? ('fas fa-check is-success') : ('fa fa-minus is-gray')"></i></span> </td>
+  			  <td>{{item.value}}</td>
+  			  <td>{{item.msg}}</td>
+  			  <td>{{timeSince(item.time)}}</td>
+  			  <td>
+  				<button :class="(item.messageSent) ? ('button is-gray') : ('button is-primary')" :title="(item.messageSent) ? ('Message sent') : ('Send message')" v-bind:disabled="!connectionOpen"  @click="sendWhisper(index)"><span class="icon"><i class="fas fa-envelope"></i></span></button>
+  				<button class="button is-success" title="Joined game" @click="joinedGame(index)"><span class="icon"><i class="fas fa-check"></i></span></button>
+  				<button class="button is-danger" title="Kick" @click="removeItem(index)"><span class="icon"><i class="fas fa-times"></i></span></button>
+          </td>
+  			</tr>
+  			<tr>
+  		  </tbody>
+  		</table>
+  	</div>
+    <div class="column">
+      <div class="container">
+        <div class="field">
+          <label class="label">Currently in the game</label>
+        </div>
+        <button class="button is-success" title="Add all back in queue" @click="moveAllGameToQue()"><span class="icon"><i class="fas fa-angle-double-left"></i></span></button>
+        <button class="button is-danger" title="Remove all" @click="moveAllGameToPlayed()"><span class="icon"><i class="fas fa-angle-double-right"></i></span></button>
+        <table class="table">
+          <thead>
+          <tr>
+            <th><abbr title="Username">Username</abbr></th>
+            <th><abbr title="Games played">Games</abbr></th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="(item, index) in usersInGame">
+            <td>{{item.name}}</td>
+            <td>{{item.value}}</td>
+            <td>
+              <button class="button is-success" title="Add back to queue" @click="moveGameToQue(index)"><span class="icon"><i class="fas fa-angle-left"></i></span></button>
+              <button class="button is-danger" title="Remove" @click="moveGameToPlayed(index)"><span class="icon"><i class="fas fa-angle-right"></i></span></button>
+            </td>
+            </td>
+          </tr>
+          <tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+  <script src="app.js"></script>
+</body>
+</html>
