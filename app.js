@@ -137,7 +137,8 @@ var app = new Vue({
 				color: '#000000',
 				displayName: userData.username,
 				time: new Date,
-        sub: false
+        sub: false,
+				msg: "",
       };
 			var colorRegexMatch = userData.tags.match(/color=(#[0-9A-Fa-f]{6});/);
 			if (colorRegexMatch) {
